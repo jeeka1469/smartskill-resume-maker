@@ -10,6 +10,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import Templates from "./pages/Templates";
+import Pricing from "./pages/Pricing";
+import Features from "./pages/Features";
+import GetStarted from "./pages/GetStarted";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,10 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/get-started" element={<GetStarted />} />
             <Route
               path="/auth"
               element={
