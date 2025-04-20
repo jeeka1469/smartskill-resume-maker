@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Textarea } from '@/components/ui/textarea';
 import { useResumeAnalysis } from '@/hooks/useResumeAnalysis';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, FileText, LayoutTemplate, Loader2, Wand, Zap } from 'lucide-react';
+import { CheckCircle2, FileText, LayoutTemplate, Loader2, Wand, Zap, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Features = () => {
@@ -65,6 +64,31 @@ const Features = () => {
     }
   };
 
+  const handleJobMatching = async () => {
+    if (!resumeContent.trim()) {
+      toast({
+        title: "Empty Content",
+        description: "Please enter your resume content to find matching jobs.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await analyzeResume(resumeContent, 'job-matching');
+      toast({
+        title: "Jobs Found",
+        description: "We've found relevant jobs matching your skills and experience.",
+      });
+    } catch (err) {
+      toast({
+        title: "Matching Failed",
+        description: error || "Failed to find matching jobs. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <Layout>
       <div className="container py-12">
@@ -74,7 +98,7 @@ const Features = () => {
           </span>
           <h1 className="text-4xl font-bold tracking-tight mb-4">AI-Powered Resume Tools</h1>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Use our advanced AI features to optimize your resume, extract your skills, and increase your chances of getting past ATS filters.
+            Use our advanced AI features to optimize your resume, extract your skills, and discover relevant job opportunities.
           </p>
         </div>
 
@@ -140,26 +164,26 @@ const Features = () => {
             <Card>
               <CardHeader className="pb-3">
                 <div className="mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <LayoutTemplate className="h-6 w-6 text-primary" />
+                  <Briefcase className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Professional Templates</CardTitle>
+                <CardTitle>Job Matching</CardTitle>
                 <CardDescription>
-                  Choose from our library of ATS-friendly resume designs
+                  Find relevant LinkedIn job opportunities based on your resume
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-1" />
-                    <span className="text-sm">Multiple design options</span>
+                    <span className="text-sm">Personalized job recommendations</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-1" />
-                    <span className="text-sm">ATS-optimized layouts</span>
+                    <span className="text-sm">Skill-based matching</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-1" />
-                    <span className="text-sm">Professional formatting</span>
+                    <span className="text-sm">LinkedIn integration</span>
                   </li>
                 </ul>
               </CardContent>
@@ -169,9 +193,10 @@ const Features = () => {
           {/* Feature Tools */}
           <div className="mt-8">
             <Tabs defaultValue="skill-extraction">
-              <TabsList className="w-full grid grid-cols-2">
+              <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="skill-extraction">Skill Extraction</TabsTrigger>
                 <TabsTrigger value="ats-analysis">ATS Analysis</TabsTrigger>
+                <TabsTrigger value="job-matching">Job Matching</TabsTrigger>
               </TabsList>
               
               {/* Skill Extraction Tab */}
@@ -283,6 +308,61 @@ const Features = () => {
                     >
                       {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {isAnalyzing ? 'Analyzing Resume...' : 'Analyze Resume'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+              
+              {/* Job Matching Tab */}
+              <TabsContent value="job-matching" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Find Matching Jobs on LinkedIn</CardTitle>
+                    <CardDescription>
+                      Paste your resume content below to discover relevant job opportunities that match your skills and experience.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Paste your resume content here..."
+                      className="min-h-[200px]"
+                      value={resumeContent}
+                      onChange={(e) => setResumeContent(e.target.value)}
+                    />
+                    
+                    {result && result.jobs && (
+                      <div className="mt-6 space-y-4">
+                        <h3 className="text-lg font-medium mb-2">Matching Jobs</h3>
+                        <div className="space-y-4">
+                          {result.jobs.map((job, index) => (
+                            <div key={index} className="p-4 border rounded-lg">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">{job.title}</h4>
+                                  <p className="text-sm text-muted-foreground">{job.company}</p>
+                                </div>
+                                <Badge variant="secondary">{job.match}% Match</Badge>
+                              </div>
+                              <p className="text-sm mt-2">{job.description}</p>
+                              <Button variant="link" className="px-0 mt-2" asChild>
+                                <a href={job.url} target="_blank" rel="noopener noreferrer">
+                                  View on LinkedIn
+                                </a>
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={handleJobMatching} 
+                      disabled={isAnalyzing || !resumeContent.trim()}
+                      className="w-full sm:w-auto"
+                    >
+                      {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isAnalyzing ? 'Finding Jobs...' : 'Find Matching Jobs'}
                     </Button>
                   </CardFooter>
                 </Card>

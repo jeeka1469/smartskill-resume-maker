@@ -20,9 +20,21 @@ serve(async (req) => {
       throw new Error('OpenAI API key not found');
     }
 
-    const systemPrompt = type === 'extract-skills' 
-      ? 'You are a skill extraction assistant. Extract all professional skills mentioned in the text and categorize them as either technical or soft skills. Return the result as a JSON object with two arrays: technicalSkills and softSkills.'
-      : 'You are an ATS optimization assistant. Analyze the resume content for ATS compatibility and suggest improvements. Focus on keyword optimization, formatting, and content structure. Return a JSON object with score (0-100) and suggestions array.';
+    let systemPrompt = '';
+    
+    switch (type) {
+      case 'extract-skills':
+        systemPrompt = 'You are a skill extraction assistant. Extract all professional skills mentioned in the text and categorize them as either technical or soft skills. Return the result as a JSON object with two arrays: technicalSkills and softSkills.';
+        break;
+      case 'analyze-ats':
+        systemPrompt = 'You are an ATS optimization assistant. Analyze the resume content for ATS compatibility and suggest improvements. Focus on keyword optimization, formatting, and content structure. Return a JSON object with score (0-100) and suggestions array.';
+        break;
+      case 'job-matching':
+        systemPrompt = 'You are a job matching assistant. Based on the resume content, generate relevant job opportunities that would be a good match. Return a JSON object with an array of jobs, each containing title, company, description, match (percentage), and a placeholder LinkedIn URL.';
+        break;
+      default:
+        throw new Error('Invalid analysis type');
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
